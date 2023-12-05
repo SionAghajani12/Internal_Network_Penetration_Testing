@@ -2,6 +2,7 @@
 
 from prettytable import PrettyTable
 from Internal_Network_Scanning import run_nmap_service_version_scan, run_nmap_os_scan, run_nmap_os_scan_pn
+from vulnerability_scanning import run_nikto
 
 def create_table(header, data):
     table = PrettyTable()
@@ -18,7 +19,7 @@ def main():
     os_table_header = ['PORT', 'STATE', 'SERVICE']
     os_table_data = []
 
-    print("OS Scan Result:")
+    print(f"{target_ip} OS Scan Result:")
     relevant_lines = False
 
     for line in os_scan_result.split('\n'):
@@ -45,7 +46,7 @@ def main():
     os_pn_table_header = ['PORT', 'STATE', 'SERVICE']
     os_pn_table_data = []
 
-    print("Scan Result with -Pn:")
+    print(f"{target_ip} Scan Result with -Pn:")
     relevant_lines = False
 
     for line in os_scan_pn_result.split('\n'):
@@ -92,9 +93,13 @@ def main():
                 service_version_table_data.append([port, state, service, version])
 
     service_version_table = create_table(service_version_table_header, service_version_table_data)
-    print("Service Version Scan Result:")
+    print(f"{target_ip} Service Version Scan Result:")
     print(service_version_table)
     print("-" * 50)
 
+    nikto_result = run_nikto(target_ip)
+    print(f"{target_ip}Nikto Scan Result:")
+    print(nikto_result)
+    print("-" * 50)
 if __name__ == "__main__":
     main()

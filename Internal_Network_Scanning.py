@@ -1,4 +1,7 @@
+# Internal_Network_Scanning.py
+
 import subprocess
+from prettytable import PrettyTable
 
 def run_nmap_os_scan(target):
     try:
@@ -17,9 +20,8 @@ def run_nmap_os_scan_pn(target):
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.stdout
 
-def run_nmap_service_version_scan(ip):
-    cmd = ['nmap', '-sV', '--version-intensity', '5', ip]
+# Add the new function for service version scanning
+def run_nmap_service_version_scan(target):
+    cmd = ['nmap', '-sV', '--version-intensity', '5', target]
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.stdout
-
-

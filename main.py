@@ -3,6 +3,7 @@
 from prettytable import PrettyTable
 from Internal_Network_Scanning import run_nmap_service_version_scan, run_nmap_os_scan, run_nmap_os_scan_pn
 from vulnerability_scanning import run_nikto
+from audit import run_nmap_vuln_script
 
 def create_table(header, data):
     table = PrettyTable()
@@ -101,6 +102,10 @@ def main():
     print(f"{target_ip}Nikto Scan Result:")
     print(nikto_result)
     print("-" * 50)
+
+    # Run audit scan Phase 5
+    print(f"{target_ip} Running Vulnerability Scan:")
+    run_nmap_vuln_script(target_ip)
 
 if __name__ == "__main__":
     main()

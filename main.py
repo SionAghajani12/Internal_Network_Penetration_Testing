@@ -101,5 +101,6 @@ def main():
     print(f"{target_ip}Nikto Scan Result:")
     print(nikto_result)
     print("-" * 50)
+
 if __name__ == "__main__":
     main()

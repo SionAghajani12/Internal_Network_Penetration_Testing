@@ -103,9 +103,5 @@ def main():
     print(nikto_result)
     print("-" * 50)
 
-    # Run audit scan Phase 5
-    print(f"{target_ip} Running Vulnerability Scan:")
-    run_nmap_vuln_script(target_ip)
-
 if __name__ == "__main__":
     main()

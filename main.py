@@ -4,7 +4,8 @@ from Internal_Network_Scanning import run_nmap_service_version_scan, run_nmap_os
 from vulnerability_scanning import run_nikto
 from audit import run_nmap_vuln_script
 from pythonping import ping
-import subprocess 
+import subprocess
+import ipaddress
 
 def create_table(header, data):
     table = PrettyTable()
@@ -21,6 +22,14 @@ def is_ip_responsive(ip):
         print(f"Error while pinging {ip}: {e}")
         return False
 
+def generate_ip_list(subnet):
+    try:
+        network = ipaddress.ip_network(subnet, strict=False)
+        return [str(ip) for ip in network.hosts()]
+    except ValueError as e:
+        print(f"Error parsing subnet: {e}")
+        return []
+
 def perform_all_phases(ip):
     phase_1(ip)
     phase_2(ip)
@@ -29,11 +38,12 @@ def perform_all_phases(ip):
     phase_5(ip)
 
 def phase_1(ip):
-    return is_ip_responsive(ip)
+    ping_result = is_ip_responsive(ip)
+    print(f"{ip} is {'responsive' if ping_result else 'unresponsive'}.")
+    return ping_result
 
 def phase_2(ip):
     if is_ip_responsive(ip):
-        # Corrected function call to run OS scan
         os_scan_result = run_nmap_os_scan(ip)
         os_table_header = ['PORT', 'STATE', 'SERVICE']
         os_table_data = []
@@ -63,7 +73,6 @@ def phase_2(ip):
 
 def phase_3(ip):
     if is_ip_responsive(ip):
-        # Corrected function call to run OS scan with -Pn
         os_scan_pn_result = run_nmap_os_scan_pn(ip)
         os_pn_table_header = ['PORT', 'STATE', 'SERVICE']
         os_pn_table_data = []
@@ -93,7 +102,6 @@ def phase_3(ip):
 
 def phase_4(ip):
     if is_ip_responsive(ip):
-        # Corrected function call to run service version scan
         service_version_result = run_nmap_service_version_scan(ip)
         service_version_table_header = ['PORT', 'STATE', 'SERVICE', 'VERSION']
         service_version_table_data = []
@@ -122,7 +130,6 @@ def phase_4(ip):
             print(service_version_table)
             print("-" * 50)
 
-
 def run_nikto(ip, ports=None):
     command = ["nikto", "-h", ip]
 
@@ -131,10 +138,11 @@ def run_nikto(ip, ports=None):
 
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        output = ""
 
-        # Print Nikto output in real-time
         for line in iter(process.stdout.readline, ''):
             print(line.strip())
+            output += line
 
         process.stdout.close()
         return_code = process.wait()
@@ -142,22 +150,22 @@ def run_nikto(ip, ports=None):
         if return_code != 0:
             print(f"Error running Nikto on {ip}. Return code: {return_code}")
 
+        return output  # Return the captured output
+
     except Exception as e:
         print(f"Error running Nikto on {ip}: {e}")
+        return ""  # Return an empty string if there is an error
 
 def phase_5(ip):
     if is_ip_responsive(ip):
-        # Specify additional ports as needed
         nikto_result = run_nikto(ip, ports='80,8080,443,8000,8443,3000,5000,3128')
         if "Not Found" not in nikto_result:
             print(f"{ip} Nikto Scan Result:")
             print(nikto_result)
             print("-" * 50)
-            # Check if any of the specified ports are found in the Nikto result
+
             if any(port in nikto_result for port in ['80', '8080', '443', '8000', '8443', '3000', '5000', '3128', '4000']):
                 print(f"Found a specific vulnerability on {ip}")
-                # Additional logic to handle the specific vulnerability found
-                # You can customize this part based on the actual vulnerability
             else:
                 print("No specific vulnerability found.")
 
@@ -171,7 +179,7 @@ def main():
     target = args.target
 
     if "/" in target:  # Subnet provided
-        ip_list = [f'{target[:-4]}{i}' for i in range(1, 255)]
+        ip_list = generate_ip_list(target)
     else:  # Single IP address provided
         ip_list = [target]
 

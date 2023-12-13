@@ -15,6 +15,18 @@ def run_nmap_os_scan(target):
         else:
             raise
 
+def run_nmap_os_scan_for_port(target):
+    try:
+        cmd = ['nmap', '-O', '-p', target]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        if "Host seems down" in e.output:
+            print("Host seems down. Trying with -Pn flag...")
+            return run_nmap_os_scan_pn(target)
+        else:
+            raise
+
 def run_nmap_os_scan_pn(target):
     cmd = ['nmap', '-Pn', '-O', target]
     result = subprocess.run(cmd, capture_output=True, text=True)
